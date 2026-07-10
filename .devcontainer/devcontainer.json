@@ -1,4 +1,29 @@
 {
   "name": "ai-cloud-devops-devcontainer",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu"
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4.0.0": {}
+  },
+  "mounts": [
+    // Repo data
+    "source=ai-cloud-devops,target=/home/vscode/.microsoft,type=volume"
+  ],
+  "forwardPorts": [
+    3000,
+    5678,
+    6333
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Open WebUI"
+    },
+    "5678": {
+      "label": "n8n"
+    },
+    "6333": {
+      "label": "Qdrant"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/postcreate.sh",
+  "postStartCommand": "bash .devcontainer/poststart.sh"
 }
