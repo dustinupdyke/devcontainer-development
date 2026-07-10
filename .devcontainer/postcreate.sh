@@ -4,7 +4,19 @@ set -euo pipefail
 # One-time provisioning. Runs once at container create and survives stop/start,
 # so durable, filesystem-level setup belongs here.
 
-# Install socat once; poststart.sh's Ollama-bridge proxy relies on it.
-if ! command -v socat >/dev/null 2>&1; then
-  sudo apt-get update -qq && sudo apt-get install -y -qq socat >/dev/null
-fi
+echo ""
+echo "========================================="
+echo "Installing Microsoft Aspire..."
+echo "========================================="
+curl -sSL https://aspire.dev/install.sh | bash
+
+# The installer drops the CLI in ~/.aspire/bin, which isn't on PATH yet in this shell.
+export PATH="$HOME/.aspire/bin:$PATH"
+
+# Single-file apphost.cs discovery is gated behind this feature flag (default off).
+aspire config set features.singlefileAppHostEnabled true
+
+echo ""
+echo "========================================="
+echo "Setup completed successfully!"
+echo "========================================="
