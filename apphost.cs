@@ -15,4 +15,27 @@ var n8n = builder.AddContainer("n8n", "docker.n8n.io/n8nio/n8n")
     .WithEnvironment("N8N_PROTOCOL", "http")
     .WithContainerName("n8n");
 
+// apphost.cs runs in the devcontainer, which CAN reach the Mac via Docker Desktop's
+// fixed host gateway (e.g. 192.168.65.254 — stable, NOT your changing LAN IP).
+// Resolve it here and hand it to the container so host.docker.internal works through
+// the docker-in-docker layer without hardcoding anything.
+string hostGatewayMapping = "host.docker.internal:host-gateway"; // fallback
+try
+{
+    var addrs = System.Net.Dns.GetHostAddresses("host.docker.internal");
+    var hostIp = System.Array.Find(addrs, a => a.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+    if (hostIp != null)
+        hostGatewayMapping = $"host.docker.internal:{hostIp}";
+}
+catch { /* devcontainer couldn't resolve it either; keep the host-gateway fallback */ }
+
+var openwebui = builder.AddContainer("openwebui", "ghcr.io/open-webui/open-webui", "main")
+    .WithContainerName("openwebui")
+    .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "http", isProxied: false)
+    .WithEnvironment("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
+    .WithEnvironment("WEBUI_AUTH", "false")  // optional: skip login for local dev
+    // Point host.docker.internal at the devcontainer's route to the Mac (resolved above):
+    .WithContainerRuntimeArgs("--add-host=" + hostGatewayMapping)
+    .WithBindMount("openwebui_data", "/app/backend/data", isReadOnly: false);
+
 builder.Build().Run();
