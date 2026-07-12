@@ -1,0 +1,20 @@
+# Keep the build context (and final image) lean.
+__pycache__/
+*.py[cod]
+.git/
+.github/
+.gitignore
+.dockerignore
+tests/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+sbom.spdx.json
+*.egg-info/
+dist/
+build/
