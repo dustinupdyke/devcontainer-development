@@ -1,4 +1,5 @@
 #:sdk Aspire.AppHost.Sdk@13.4.6
+#:package Aspire.Hosting.Python@13.4.6
 
 #pragma warning disable ASPIRECERTIFICATES001
 
@@ -37,5 +38,18 @@ var openwebui = builder.AddContainer("openwebui", "ghcr.io/open-webui/open-webui
     // Point host.docker.internal at the devcontainer's route to the Mac (resolved above):
     .WithContainerRuntimeArgs("--add-host=" + hostGatewayMapping)
     .WithBindMount("openwebui_data", "/app/backend/data", isReadOnly: false);
+
+// Python URL-shortener demo (FastAPI on Uvicorn), served from ./src.
+// Aspire provisions src/.venv from src/requirements.txt, which installs the
+// project plus its dev/test tooling from pyproject.toml.
+builder.AddUvicornApp("shortener", "src", "app.main:app")
+    .WithExternalHttpEndpoints()
+    .WithHttpHealthCheck("/health");
+
+// On-demand pytest runner for the shortener suite. It does not auto-start:
+// click "Start" on the "shortener-tests" resource in the Aspire dashboard to
+// run `python -m pytest` (coverage gate included) against ./src.
+builder.AddPythonModule("shortener-tests", "src", "pytest")
+    .WithExplicitStart();
 
 builder.Build().Run();

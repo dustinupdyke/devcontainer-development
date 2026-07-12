@@ -6,6 +6,8 @@ __pycache__/
 .gitignore
 .dockerignore
 tests/
+# Aspire dev-venv provisioning only; the image installs from pyproject.toml.
+requirements.txt
 .venv/
 venv/
 .mypy_cache/

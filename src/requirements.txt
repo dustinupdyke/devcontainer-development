@@ -1,0 +1,10 @@
+# Consumed by Aspire's Python integration to provision the local dev
+# virtualenv (src/.venv) for the "shortener" app and "shortener-tests" runner.
+#
+# Single source of truth stays pyproject.toml: this installs the project in
+# editable mode with its dev/test extras (fastapi, uvicorn, pydantic, pytest,
+# pytest-cov, httpx, ruff, mypy, pip-audit).
+#
+# NOTE: the Docker image does NOT use this file — it installs from pyproject
+# (`pip install .`) for a lean, dev-tool-free runtime.
+-e .[dev]
