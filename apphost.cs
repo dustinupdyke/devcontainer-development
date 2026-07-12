@@ -35,20 +35,24 @@ var openwebui = builder.AddContainer("openwebui", "ghcr.io/open-webui/open-webui
     .WithHttpEndpoint(port: 8080, targetPort: 8080, name: "http", isProxied: false)
     .WithEnvironment("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
     .WithEnvironment("WEBUI_AUTH", "false")  // optional: skip login for local dev
-    // Point host.docker.internal at the devcontainer's route to the Mac (resolved above):
+                                             // Point host.docker.internal at the devcontainer's route to the Mac (resolved above):
     .WithContainerRuntimeArgs("--add-host=" + hostGatewayMapping)
     .WithBindMount("openwebui_data", "/app/backend/data", isReadOnly: false);
 
 // Python URL-shortener demo (FastAPI on Uvicorn), served from ./src.
-// Aspire provisions src/.venv from src/requirements.txt, which installs the
-// project plus its dev/test tooling from pyproject.toml.
+//
+// No Aspire-managed venv. Every previous failure came from Aspire creating a
+// venv / running pip on the /workspaces bind mount, where Docker Desktop fails
+// package-metadata writes with ENOENT (the url_shortener `direct_url.json`
+// error). Instead, dependencies are installed into the devcontainer's own
+// Python by .devcontainer/postcreate.sh (native filesystem), and Aspire just
+// launches uvicorn from PATH. The app imports `app.main` from ./src at runtime.
 builder.AddUvicornApp("shortener", "src", "app.main:app")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");
 
-// On-demand pytest runner for the shortener suite. It does not auto-start:
-// click "Start" on the "shortener-tests" resource in the Aspire dashboard to
-// run `python -m pytest` (coverage gate included) against ./src.
+// On-demand pytest runner. Same interpreter, no venv. Click "Start" on the
+// "shortener-tests" resource in the dashboard to run `python -m pytest`.
 builder.AddPythonModule("shortener-tests", "src", "pytest")
     .WithExplicitStart();
 

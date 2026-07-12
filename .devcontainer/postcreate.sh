@@ -16,6 +16,14 @@ export PATH="$HOME/.aspire/bin:$PATH"
 # Single-file apphost.cs discovery is gated behind this feature flag (default off).
 aspire config set features.singlefileAppHostEnabled true
 
+# Install Python deps for the Aspire "shortener" app + test runner into the
+# devcontainer's own Python (native fs). Aspire uses WithoutVirtualEnvironment(),
+# so it never creates a venv or runs pip on the /workspaces bind mount.
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+python -m pip install --upgrade pip
+python -m pip install -r "$REPO_ROOT/src/requirements.txt" \
+  || python -m pip install --break-system-packages -r "$REPO_ROOT/src/requirements.txt"
+
 echo ""
 echo "========================================="
 echo "Setup completed successfully!"
